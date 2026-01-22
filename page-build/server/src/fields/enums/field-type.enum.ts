@@ -1,0 +1,10 @@
+export enum FieldType {
+  TEXT = 'TEXT',
+  NUMBER = 'NUMBER',
+  DATE = 'DATE',
+  DROPDOWN = 'DROPDOWN',
+  CHECKBOX = 'CHECKBOX',
+  RADIO = 'RADIO',
+  EMAIL = 'EMAIL',
+  PASSWORD = 'PASSWORD',
+}
