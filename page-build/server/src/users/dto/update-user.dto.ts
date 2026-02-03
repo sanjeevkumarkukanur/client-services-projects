@@ -4,7 +4,4 @@ export class UpdateUserDto {
   @IsOptional()
   name?: string;
 
-  @IsOptional()
-  @IsObject()
-  customFields?: Record<string, any>;
 }
