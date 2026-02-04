@@ -11,7 +11,6 @@ export class PrismaService
   private pool: Pool;
 
   constructor() {
-      console.log('DATABASE_URL USED BY PRISMA:', process.env.DATABASE_URL);
     const pool = new Pool({
       connectionString: process.env.DATABASE_URL,
     });

@@ -14,11 +14,46 @@ model User {
   createdAt    DateTime @default(now())
 }
 
-model CustomField {
-  id        String  @id @default(uuid())
-  key       String  @unique
-  label     String
-  type      String
-  required  Boolean @default(false)
-  createdAt DateTime @default(now())
+model Page {
+  id          String    @id @default(uuid())
+  key         String    @unique
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+
+  sections    Section[]
 }
+
+model Section {
+  id         String   @id @default(uuid())
+  pageId     String
+  key        String
+  title      String
+  order      Int
+  layoutJson Json
+  stylesJson Json
+
+  page   Page    @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  fields Field[]
+
+  @@index([pageId])
+}
+
+model Field {
+  id             String @id @default(uuid())
+  sectionId      String
+  key            String
+  label          String
+  type           String
+  order          Int
+
+  uiJson         Json
+  stylesJson     Json  
+  validationJson Json      // 👈 regex goes here
+
+  section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@index([sectionId])
+}
+
+
