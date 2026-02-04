@@ -2,7 +2,9 @@ import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/commo
 import { FieldsService } from './fields.service';
 import { CreateFieldDto } from './dto/create-field.dto';
 import { UpdateFieldDto } from './dto/update-field.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Mastaer Fields')
 @Controller('master/fields')
 export class FieldsController {
   constructor(private readonly fieldsService: FieldsService) {}

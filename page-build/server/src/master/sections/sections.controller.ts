@@ -2,7 +2,10 @@ import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/commo
 import { SectionsService } from './sections.service';
 import { CreateSectionDto } from './dto/create-section.dto';
 import { UpdateSectionDto } from './dto/update-section.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+
+@ApiTags('Mastaer Sections')
 @Controller('master/sections')
 export class SectionsController {
   constructor(private readonly sectionsService: SectionsService) {}

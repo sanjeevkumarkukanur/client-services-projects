@@ -6,6 +6,44 @@ datasource db {
   provider = "postgresql" // change to mysql if needed
 }
 
+model PlanPage {
+  id     String @id @default(uuid())
+  planId String
+  pageId String // FK to master Page
+
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  page Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, pageId])
+}
+
+model Plan {
+  id          String   @id @default(uuid())
+  key         String   @unique // e.g. "basic", "pro"
+  name        String // "Basic", "Pro"
+  price       Int // in cents or rupees (e.g. 499)
+  currency    String // "INR", "USD"
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  limits  PlanLimit?
+  pages   PlanPage[] // which master pages are included
+  tenants Tenant[]
+}
+
+model PlanLimit {
+  id     String @id @default(uuid())
+  planId String @unique
+
+  maxPages    Int
+  maxSections Int
+  maxFields   Int
+  maxUsers    Int
+
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
+}
+
 model Tenant {
   id        String   @id @default(uuid())
   name      String
@@ -17,7 +55,10 @@ model Tenant {
   country   String?
   createdAt DateTime @default(now())
 
-  pages     TenantPage[]
+  planId String?
+  plan   Plan?   @relation(fields: [planId], references: [id])
+
+  pages TenantPage[]
 }
 
 model TenantPage {
@@ -27,14 +68,14 @@ model TenantPage {
   name      String
   createdAt DateTime @default(now())
 
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  sections  TenantSection[]
+  tenant   Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sections TenantSection[]
 
   @@index([tenantId])
 }
 
 model TenantSection {
-  id           String   @id @default(uuid())
+  id           String @id @default(uuid())
   tenantPageId String
   key          String
   title        String
@@ -42,7 +83,7 @@ model TenantSection {
   layoutJson   Json
   stylesJson   Json
 
-  page   TenantPage   @relation(fields: [tenantPageId], references: [id], onDelete: Cascade)
+  page   TenantPage    @relation(fields: [tenantPageId], references: [id], onDelete: Cascade)
   fields TenantField[]
 
   @@index([tenantPageId])
@@ -64,7 +105,6 @@ model TenantField {
   @@index([tenantSectionId])
 }
 
-
 model User {
   id           String   @id @default(uuid())
   name         String
@@ -74,17 +114,18 @@ model User {
 }
 
 model Page {
-  id          String    @id @default(uuid())
-  key         String    @unique
+  id          String   @id @default(uuid())
+  key         String   @unique
   name        String
   description String?
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime @default(now())
 
-  sections    Section[]
+  sections  Section[]
+  planPages PlanPage[]
 }
 
 model Section {
-  id         String   @id @default(uuid())
+  id         String @id @default(uuid())
   pageId     String
   key        String
   title      String
@@ -99,20 +140,18 @@ model Section {
 }
 
 model Field {
-  id             String @id @default(uuid())
-  sectionId      String
-  key            String
-  label          String
-  type           String
-  order          Int
+  id        String @id @default(uuid())
+  sectionId String
+  key       String
+  label     String
+  type      String
+  order     Int
 
   uiJson         Json
-  stylesJson     Json  
-  validationJson Json      // 👈 regex goes here
+  stylesJson     Json
+  validationJson Json // 👈 regex goes here
 
   section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
   @@index([sectionId])
 }
-
-
