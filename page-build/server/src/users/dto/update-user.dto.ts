@@ -1,7 +1,11 @@
-import { IsOptional, IsObject } from 'class-validator';
+import { IsIn, IsOptional, IsString } from 'class-validator';
 
 export class UpdateUserDto {
   @IsOptional()
+  @IsString()
   name?: string;
 
+  @IsOptional()
+  @IsIn(['ADMIN', 'USER'])
+  role?: 'ADMIN' | 'USER';
 }

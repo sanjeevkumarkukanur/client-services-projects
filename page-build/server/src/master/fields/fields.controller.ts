@@ -4,7 +4,7 @@ import { CreateFieldDto } from './dto/create-field.dto';
 import { UpdateFieldDto } from './dto/update-field.dto';
 import { ApiTags } from '@nestjs/swagger';
 
-@ApiTags('Mastaer Fields')
+@ApiTags('Master Fields')
 @Controller('master/fields')
 export class FieldsController {
   constructor(private readonly fieldsService: FieldsService) {}

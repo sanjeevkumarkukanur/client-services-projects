@@ -58,7 +58,20 @@ model Tenant {
   planId String?
   plan   Plan?   @relation(fields: [planId], references: [id])
 
+  users User[]
   pages TenantPage[]
+}
+
+model User {
+  id       String  @id @default(uuid())
+  email    String  @unique
+  password String // ✅ only here
+  name     String?
+  role     String // "OWNER", "ADMIN", "USER"
+  tenantId String
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }
 
 model TenantPage {
@@ -103,14 +116,6 @@ model TenantField {
   section TenantSection @relation(fields: [tenantSectionId], references: [id], onDelete: Cascade)
 
   @@index([tenantSectionId])
-}
-
-model User {
-  id           String   @id @default(uuid())
-  name         String
-  email        String   @unique
-  customFields Json?
-  createdAt    DateTime @default(now())
 }
 
 model Page {

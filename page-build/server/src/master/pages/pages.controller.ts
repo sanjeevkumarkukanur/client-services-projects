@@ -4,7 +4,7 @@ import { CreatePageDto } from "./dto/create-page.dto";
 import { UpdatePageDto } from "./dto/update-page.dto";
 import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('Mastaer Pages')
+@ApiTags('Master Pages')
 @Controller("master/pages")
 export class PagesController {
   constructor(private readonly pagesService: PagesService) {}

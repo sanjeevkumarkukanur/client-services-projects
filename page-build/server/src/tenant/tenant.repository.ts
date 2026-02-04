@@ -5,22 +5,42 @@ import { PrismaService } from '../prisma/prisma.service';
 export class TenantRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  createTenant(data: {
-    name: string;
-    email: string;
-    phone?: string;
-    website?: string;
-    address?: string;
-    city?: string;
-    country?: string;
-  }) {
-    return this.prisma.tenant.create({ data });
-  }
+  // ✅ Create tenant WITH planId
+createTenant(data: {
+  name: string;
+  email: string;
+  planId: string;
+  phone?: string;
+  website?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+}) {
+  const { planId, ...tenantData } = data;
 
+  return this.prisma.tenant.create({
+    data: {
+      ...tenantData,
+      plan: {
+        connect: { id: planId },
+      },
+    },
+  });
+}
+
+
+  // ✅ Return planId also (needed for plan check)
   findTenant(id: string) {
-    return this.prisma.tenant.findUnique({ where: { id } });
+    return this.prisma.tenant.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        planId: true,
+      },
+    });
   }
 
+  // ✅ Get master page with sections + fields
   getMasterPageByKey(pageKey: string) {
     return this.prisma.page.findUnique({
       where: { key: pageKey },
@@ -33,6 +53,18 @@ export class TenantRepository {
         },
       },
     });
+  }
+
+  // ✅ Check if page is allowed for plan
+  async isPageAllowedForPlan(planId: string, pageId: string): Promise<boolean> {
+    const count = await this.prisma.planPage.count({
+      where: {
+        planId,
+        pageId,
+      },
+    });
+
+    return count > 0;
   }
 
   createTenantPage(data: { tenantId: string; pageKey: string; name: string }) {

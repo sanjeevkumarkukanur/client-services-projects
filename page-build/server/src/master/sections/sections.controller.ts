@@ -5,7 +5,7 @@ import { UpdateSectionDto } from './dto/update-section.dto';
 import { ApiTags } from '@nestjs/swagger';
 
 
-@ApiTags('Mastaer Sections')
+@ApiTags('Master Sections')
 @Controller('master/sections')
 export class SectionsController {
   constructor(private readonly sectionsService: SectionsService) {}

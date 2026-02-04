@@ -6,11 +6,14 @@ import { SectionsModule } from './master/sections/sections.module';
 import { FieldsModule } from './master/fields/fields.module';
 import { TenantModule } from './tenant/tenant.module';
 import { PlanModule } from './plan/plan.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     PlanModule,
     TenantModule,
+    UsersModule,
+    AuthModule,
     PrismaModule,
     UsersModule,
     PagesModule,
