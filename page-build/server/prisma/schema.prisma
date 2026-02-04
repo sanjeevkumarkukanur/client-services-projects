@@ -6,6 +6,65 @@ datasource db {
   provider = "postgresql" // change to mysql if needed
 }
 
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  phone     String?
+  website   String?
+  address   String?
+  city      String?
+  country   String?
+  createdAt DateTime @default(now())
+
+  pages     TenantPage[]
+}
+
+model TenantPage {
+  id        String   @id @default(uuid())
+  tenantId  String
+  pageKey   String
+  name      String
+  createdAt DateTime @default(now())
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sections  TenantSection[]
+
+  @@index([tenantId])
+}
+
+model TenantSection {
+  id           String   @id @default(uuid())
+  tenantPageId String
+  key          String
+  title        String
+  order        Int
+  layoutJson   Json
+  stylesJson   Json
+
+  page   TenantPage   @relation(fields: [tenantPageId], references: [id], onDelete: Cascade)
+  fields TenantField[]
+
+  @@index([tenantPageId])
+}
+
+model TenantField {
+  id              String @id @default(uuid())
+  tenantSectionId String
+  key             String
+  label           String
+  type            String
+  order           Int
+  uiJson          Json
+  stylesJson      Json
+  validationJson  Json
+
+  section TenantSection @relation(fields: [tenantSectionId], references: [id], onDelete: Cascade)
+
+  @@index([tenantSectionId])
+}
+
+
 model User {
   id           String   @id @default(uuid())
   name         String
