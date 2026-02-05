@@ -65,10 +65,14 @@ model Tenant {
 model User {
   id       String  @id @default(uuid())
   email    String  @unique
-  password String // ✅ only here
+  password String
   name     String?
-  role     String // "OWNER", "ADMIN", "USER"
+  role     String // ❌ this is just string, not relation
   tenantId String
+
+  // ✅ Add these:
+  roleId  String?
+  roleRel Role?   @relation(fields: [roleId], references: [id])
 
   tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
@@ -159,4 +163,31 @@ model Field {
   section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
   @@index([sectionId])
+}
+
+model Permission {
+  id              String           @id @default(uuid())
+  key             String           @unique // e.g. "employee.create"
+  name            String
+  rolePermissions RolePermission[]
+}
+
+model Role {
+  id       String @id @default(uuid())
+  name     String // "ADMIN", "HR", "MANAGER"
+  tenantId String
+
+  users       User[]
+  permissions RolePermission[]
+}
+
+model RolePermission {
+  id           String @id @default(uuid())
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
 }

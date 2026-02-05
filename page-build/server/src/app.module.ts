@@ -7,9 +7,13 @@ import { FieldsModule } from './master/fields/fields.module';
 import { TenantModule } from './tenant/tenant.module';
 import { PlanModule } from './plan/plan.module';
 import { AuthModule } from './auth/auth.module';
+import { PermissionsModule } from './permissions/permissions.module';
+import { RolesModule } from './roles/roles.module';
 
 @Module({
   imports: [
+    PermissionsModule,
+    RolesModule,
     AuthModule,
     PlanModule,
     TenantModule,
