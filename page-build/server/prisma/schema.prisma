@@ -10,6 +10,7 @@ model PlanPage {
   id     String @id @default(uuid())
   planId String
   pageId String // FK to master Page
+  autoEnable Boolean @default(true)
 
   plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
   page Page @relation(fields: [pageId], references: [id], onDelete: Cascade)

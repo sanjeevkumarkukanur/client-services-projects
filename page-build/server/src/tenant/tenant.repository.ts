@@ -5,42 +5,72 @@ import { PrismaService } from '../prisma/prisma.service';
 export class TenantRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  // ✅ Create tenant WITH planId
-createTenant(data: {
-  name: string;
-  email: string;
-  planId: string;
-  phone?: string;
-  website?: string;
-  address?: string;
-  city?: string;
-  country?: string;
-}) {
-  const { planId, ...tenantData } = data;
-
-  return this.prisma.tenant.create({
-    data: {
-      ...tenantData,
-      plan: {
-        connect: { id: planId },
-      },
-    },
-  });
-}
-
-
-  // ✅ Return planId also (needed for plan check)
-  findTenant(id: string) {
-    return this.prisma.tenant.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        planId: true,
+  // ---------- Tenant ----------
+  createTenant(data: {
+    name: string;
+    email: string;
+    planId?: string;
+    phone?: string;
+    website?: string;
+    address?: string;
+    city?: string;
+    country?: string;
+  }) {
+    return this.prisma.tenant.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        website: data.website,
+        address: data.address,
+        city: data.city,
+        country: data.country,
+        ...(data.planId
+          ? { plan: { connect: { id: data.planId } } }
+          : {}),
       },
     });
   }
 
-  // ✅ Get master page with sections + fields
+  findTenant(id: string) {
+    return this.prisma.tenant.findUnique({ where: { id } });
+  }
+
+  // ---------- Plan → Pages ----------
+  getAutoEnabledPagesForPlan(planId: string) {
+    return this.prisma.planPage.findMany({
+      where: {
+        planId,
+        autoEnable: true,
+      },
+      include: {
+        page: {
+          include: {
+            sections: {
+              orderBy: { order: 'asc' },
+              include: {
+                fields: { orderBy: { order: 'asc' } },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  isPageAllowedForPlan(planId: string, pageId: string) {
+    return this.prisma.planPage
+      .findUnique({
+        where: {
+          planId_pageId: {
+            planId,
+            pageId,
+          },
+        },
+      })
+      .then(Boolean);
+  }
+
   getMasterPageByKey(pageKey: string) {
     return this.prisma.page.findUnique({
       where: { key: pageKey },
@@ -55,22 +85,20 @@ createTenant(data: {
     });
   }
 
-  // ✅ Check if page is allowed for plan
-  async isPageAllowedForPlan(planId: string, pageId: string): Promise<boolean> {
-    const count = await this.prisma.planPage.count({
-      where: {
-        planId,
-        pageId,
-      },
-    });
-
-    return count > 0;
-  }
-
+  // ---------- Tenant Pages ----------
   createTenantPage(data: { tenantId: string; pageKey: string; name: string }) {
     return this.prisma.tenantPage.create({ data });
   }
 
+  tenantHasPage(tenantId: string, pageKey: string) {
+    return this.prisma.tenantPage
+      .findFirst({
+        where: { tenantId, pageKey },
+      })
+      .then(Boolean);
+  }
+
+  // ---------- Tenant Sections ----------
   createTenantSection(data: {
     tenantPageId: string;
     key: string;
@@ -82,6 +110,7 @@ createTenant(data: {
     return this.prisma.tenantSection.create({ data });
   }
 
+  // ---------- Tenant Fields ----------
   createTenantField(data: {
     tenantSectionId: string;
     key: string;

@@ -16,7 +16,7 @@ export class TenantService {
     private readonly usersRepo: UsersRepository,
   ) {}
 
-  // ✅ Create Tenant + OWNER User
+  // ✅ Create Tenant + OWNER + AUTO-ENABLE PAGES FROM PLAN
   async createTenant(dto: CreateTenantDto) {
     // 1️⃣ Create Tenant
     const tenant = await this.repo.createTenant({
@@ -42,7 +42,58 @@ export class TenantService {
       tenantId: tenant.id,
     });
 
-    // 4️⃣ Return response (never return password)
+    // 4️⃣ 🔥 AUTO-ENABLE pages from plan
+    if (tenant.planId) {
+      const planPages = await this.repo.getAutoEnabledPagesForPlan(
+        tenant.planId,
+      );
+
+      for (const pp of planPages) {
+        const masterPage = pp.page;
+
+        // Avoid duplicates (safety)
+        const exists = await this.repo.tenantHasPage(
+          tenant.id,
+          masterPage.key,
+        );
+        if (exists) continue;
+
+        // 4.1 Create TenantPage
+        const tenantPage = await this.repo.createTenantPage({
+          tenantId: tenant.id,
+          pageKey: masterPage.key,
+          name: masterPage.name,
+        });
+
+        // 4.2 Copy Sections
+        for (const section of masterPage.sections) {
+          const tenantSection = await this.repo.createTenantSection({
+            tenantPageId: tenantPage.id,
+            key: section.key,
+            title: section.title,
+            order: section.order,
+            layoutJson: section.layoutJson,
+            stylesJson: section.stylesJson,
+          });
+
+          // 4.3 Copy Fields
+          for (const field of section.fields) {
+            await this.repo.createTenantField({
+              tenantSectionId: tenantSection.id,
+              key: field.key,
+              label: field.label,
+              type: field.type,
+              order: field.order,
+              uiJson: field.uiJson,
+              stylesJson: field.stylesJson,
+              validationJson: field.validationJson,
+            });
+          }
+        }
+      }
+    }
+
+    // 5️⃣ Return response
     return {
       tenant,
       owner: {
@@ -53,9 +104,8 @@ export class TenantService {
     };
   }
 
-  // ✅ Your existing logic (unchanged)
+  // ✅ Manual enable (unchanged, but with duplicate guard)
   async enablePage(tenantId: string, dto: EnablePageDto) {
-    // 0️⃣ Load tenant (must include planId)
     const tenant = await this.repo.findTenant(tenantId);
     if (!tenant) throw new NotFoundException('Tenant not found');
 
@@ -63,11 +113,9 @@ export class TenantService {
       throw new ForbiddenException('Tenant does not have an active plan');
     }
 
-    // 1️⃣ Load master page by key
     const masterPage = await this.repo.getMasterPageByKey(dto.pageKey);
     if (!masterPage) throw new NotFoundException('Master page not found');
 
-    // 2️⃣ ✅ Check if plan allows this page
     const isAllowed = await this.repo.isPageAllowedForPlan(
       tenant.planId,
       masterPage.id,
@@ -79,14 +127,17 @@ export class TenantService {
       );
     }
 
-    // 3️⃣ Create tenant page
+    const exists = await this.repo.tenantHasPage(tenantId, masterPage.key);
+    if (exists) {
+      return { message: 'Page already enabled' };
+    }
+
     const tenantPage = await this.repo.createTenantPage({
       tenantId,
       pageKey: masterPage.key,
       name: masterPage.name,
     });
 
-    // 4️⃣ Copy sections and fields
     for (const section of masterPage.sections) {
       const tenantSection = await this.repo.createTenantSection({
         tenantPageId: tenantPage.id,
