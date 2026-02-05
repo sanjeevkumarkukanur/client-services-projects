@@ -10,12 +10,11 @@ import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
+    AuthModule,
     PlanModule,
     TenantModule,
     UsersModule,
-    AuthModule,
     PrismaModule,
-    UsersModule,
     PagesModule,
     SectionsModule,
     FieldsModule,
