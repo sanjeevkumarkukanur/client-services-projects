@@ -74,6 +74,8 @@ model User {
   roleId  String?
   roleRel Role?   @relation(fields: [roleId], references: [id])
 
+  permissions UserPermission[]
+
   tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 }
@@ -170,6 +172,7 @@ model Permission {
   key             String           @unique // e.g. "employee.create"
   name            String
   rolePermissions RolePermission[]
+  users           UserPermission[]
 }
 
 model Role {
@@ -190,4 +193,16 @@ model RolePermission {
   permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
   @@unique([roleId, permissionId])
+}
+
+model UserPermission {
+  id           String  @id @default(uuid())
+  userId       String
+  permissionId String
+  allowed      Boolean @default(true) // true = allow, false = deny
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permissionId])
 }

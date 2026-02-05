@@ -9,11 +9,13 @@ import { PlanModule } from './plan/plan.module';
 import { AuthModule } from './auth/auth.module';
 import { PermissionsModule } from './permissions/permissions.module';
 import { RolesModule } from './roles/roles.module';
+import { UserPermissionsModule } from './user-permissions/user-permissions.module';
 
 @Module({
   imports: [
     PermissionsModule,
     RolesModule,
+    UserPermissionsModule,
     AuthModule,
     PlanModule,
     TenantModule,
